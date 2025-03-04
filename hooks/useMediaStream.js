@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
 
 const useMediaStream = () => {
   const [state, setState] = useState(null);
@@ -13,7 +14,7 @@ const useMediaStream = () => {
           audio: true,
           video: true,
         });
-        console.log("setting your stream");
+        toast.success("Stream initialized");
         setState(stream);
       } catch (e) {
         console.log("Error in media navigator", e);

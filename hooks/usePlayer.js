@@ -2,11 +2,9 @@ import {useState} from 'react'
 import { cloneDeep } from 'lodash'
 import { useSocket } from '@/context/socket'
 import { useRouter } from 'next/router'
-import useMediaStream from './useMediaStream'
 
 
 const usePlayer = (myId, roomId, peer) => {
-   const{setStream}=useMediaStream()
     const socket = useSocket()
     const [players, setPlayers] = useState({})
     const router = useRouter()
@@ -39,61 +37,77 @@ const usePlayer = (myId, roomId, peer) => {
         })
         socket.emit('user-toggle-audio', myId, roomId)
     }
+  
 
     const toggleVideo = async () => {
-        console.log("I toggled my video");
-        const stream = players[myId].url;
-      
-        if (stream) {
-          const videoTracks = stream.getVideoTracks();
-          if (videoTracks.length > 0) {
-            if (videoTracks[0].enabled) {
-                
-              
-              videoTracks.forEach((track) => track.stop()); 
-            } else {
-             
-              const newStream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: players[myId].muted, 
-              });
-              setStream(newStream )
-              setPlayers((prev) => ({
-                ...prev,
-                [myId]: {
-                  url: newStream,
-                  muted: prev[myId].muted,
-                  playing: true,
-                },
-              }));
-              
-              Object.keys(players).forEach((playerId) => {
-                if (playerId !== myId) {
-                  const call = peer.call(playerId, newStream);
-                  call.on("stream", (incomingStream) => {
-                    setPlayers((prev) => ({
-                      ...prev,
-                      [playerId]: {
-                        url: incomingStream,
-                        muted: prev[playerId].muted,
-                        playing: prev[playerId].playing,
-                      },
-                    }));
-                  });
-                }
-              });
-            }
-          }
+      console.log("Toggling video...");
+    
+      let player = players[myId];
+      if (!player) {
+        console.log("No player found for myId");
+        return;
+      }
+    
+      let stream = player.url;
+      if (!stream) {
+        try {
+          console.log("Requesting a new video stream...");
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setPlayers((prev) => ({
+            ...prev,
+            [myId]: {
+              ...prev[myId],
+              playing: true,
+              url: stream,
+            },
+          }));
+    
+          console.log("New stream set:", stream);
+        } catch (error) {
+          console.error("Error getting video stream:", error);
+          return;
         }
-      
-        setPlayers((prev) => {
-          const copy = cloneDeep(prev);
-          copy[myId].playing = !copy[myId].playing;
-          return { ...copy };
-        });
-      
-        socket.emit("user-toggle-video", myId, roomId);
-      };
+      }
+    
+      const videoTracks = stream.getVideoTracks();
+      console.log("Video tracks:", videoTracks);
+    
+      if (videoTracks.length > 0) {
+        if (player.playing) {
+          console.log("Stopping video...");
+    
+          videoTracks.forEach((track) => {
+            track.stop();
+            stream.removeTrack(track);
+          });
+          Object.keys(players).forEach((playerId) => {
+            if (playerId !== myId) {
+              const sender = peer?.connections[playerId]?.[0]?.peerConnection
+                ?.getSenders()
+                .find((s) => s.track?.kind === "video");
+    
+              if (sender) {
+                console.log("Removing video track from peer connection:", playerId);
+                peer?.connections[playerId]?.[0]?.peerConnection.removeTrack(sender);
+              }
+            }
+          });
+    
+          setPlayers((prev) => ({
+            ...prev,
+            [myId]: {
+              ...prev[myId],
+              playing: false,
+              url: null,
+            },
+          }));
+    
+          console.log("Video stopped");
+        }
+      }
+    
+      socket.emit("user-toggle-video", myId, roomId);
+    };
     return {players, setPlayers, playerHighlighted, nonHighlightedPlayers, toggleAudio, toggleVideo, leaveRoom}
 }
 
