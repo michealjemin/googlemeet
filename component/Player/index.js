@@ -6,7 +6,7 @@ import styles from "@/component/Player/index.module.css";
 
 const Player = (props) => {
   const { url, muted, playing, isActive } = props;
-  console.log(url)
+  // console.log(url)
   return (
     <div
       className={cx(styles.playerContainer, {
