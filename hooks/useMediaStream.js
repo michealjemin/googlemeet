@@ -14,14 +14,14 @@ const useMediaStream = () => {
           audio: true,
           video: true,
         });
-        toast.success("Stream initialized");
+        // toast.success("Stream initialized");
         setState(stream);
       } catch (e) {
         toast.error("error while initializing media stream", e)
       }
     })();
 
-    // Cleanup function
+    
     return () => {
       if (state) {
         state.getTracks().forEach((track) => track.stop())

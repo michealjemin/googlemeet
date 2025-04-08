@@ -12,6 +12,7 @@ import CopySection from "@/component/CopySection";
 
 import styles from "@/styles/room.module.css";
 import { useRouter } from "next/router";
+import Chat from "@/component/Chat/chat";
 
 const Room = () => {
   const socket = useSocket();
@@ -144,7 +145,7 @@ const Room = () => {
             url={playerHighlighted.url}
             muted={playerHighlighted.muted}
             playing={playerHighlighted.playing}
-            isActive
+            isActive 
           />
         )}
       </div>
@@ -162,6 +163,7 @@ const Room = () => {
           );
         })}
       </div>
+      <Chat roomId={roomId} myId={myId} />
       <CopySection roomId={roomId}/>
       <Bottom
         muted={playerHighlighted?.muted}

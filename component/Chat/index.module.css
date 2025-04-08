@@ -1,0 +1,82 @@
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 500px; /* Adjust height as needed */
+  width: 350px; /* Adjust width as needed */
+  background-color: #2d3748; /* Dark background */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background-color: #1a202c; /* Slightly darker background for messages */
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  max-width: 80%;
+}
+
+.myMessage {
+  align-self: flex-end;
+  background-color: #3182ce; /* Blue for my messages */
+  color: white;
+  border-radius: 10px 10px 0 10px;
+  padding: 8px 12px;
+}
+
+.otherMessage {
+  align-self: flex-start;
+  background-color: #4a5568; /* Gray for other messages */
+  color: white;
+  border-radius: 10px 10px 10px 0;
+  padding: 8px 12px;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #a0aec0; /* Light gray for timestamps */
+  margin-top: 4px;
+}
+
+.chatInput {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background-color: #2d3748; /* Dark background for input area */
+  border-top: 1px solid #4a5568; /* Separator line */
+}
+
+.chatInput input {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4a5568; /* Dark input field */
+  color: white;
+  outline: none;
+}
+
+.chatInput input::placeholder {
+  color: #a0aec0; /* Light gray placeholder text */
+}
+
+.chatInput button {
+  padding: 8px 16px;
+  background-color: #3182ce; /* Blue send button */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chatInput button:hover {
+  background-color: #2c5282; /* Darker blue on hover */
+}

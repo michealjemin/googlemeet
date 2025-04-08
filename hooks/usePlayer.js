@@ -48,38 +48,53 @@ const usePlayer = (myId, roomId, peer) => {
         return;
       }
     
-      let stream = player.url;
-      if (!stream) {
+      // Always request a new stream when toggling video on
+      if (!player.playing) {
         try {
           console.log("Requesting a new video stream...");
-          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    
           setPlayers((prev) => ({
             ...prev,
             [myId]: {
               ...prev[myId],
-              playing: true,
+              playing: true, // Video is now playing
               url: stream,
             },
           }));
     
           console.log("New stream set:", stream);
+    
+          // Notify peers that video is toggled back on
+          Object.keys(players).forEach((playerId) => {
+            if (playerId !== myId) {
+              const sender = peer?.connections[playerId]?.[0]?.peerConnection
+                ?.getSenders()
+                .find((s) => s.track?.kind === "video");
+    
+              if (sender) {
+                console.log("Re-adding video track to peer connection:", playerId);
+                sender.replaceTrack(stream.getVideoTracks()[0]); // Add video track back to peer connection
+              }
+            }
+          });
+    
+          console.log("Video started.");
         } catch (error) {
           console.error("Error getting video stream:", error);
-          return;
         }
-      }
+      } else {
+        // If video is currently playing, stop it
+        console.log("Stopping video...");
     
-      const videoTracks = stream.getVideoTracks();
-      console.log("Video tracks:", videoTracks);
-    
-      if (videoTracks.length > 0) {
-        if (player.playing) {
-          console.log("Stopping video...");
-    
+        const stream = player.url;
+        if (stream) {
+          const videoTracks = stream.getVideoTracks();
           videoTracks.forEach((track) => {
-            track.stop();
-            stream.removeTrack(track);
+            track.stop(); // Stop the video track
           });
+    
+          // Notify peers that the video is toggled off
           Object.keys(players).forEach((playerId) => {
             if (playerId !== myId) {
               const sender = peer?.connections[playerId]?.[0]?.peerConnection
@@ -88,24 +103,26 @@ const usePlayer = (myId, roomId, peer) => {
     
               if (sender) {
                 console.log("Removing video track from peer connection:", playerId);
-                peer?.connections[playerId]?.[0]?.peerConnection.removeTrack(sender);
+                sender.track.stop(); // Stop the track in peer connection
               }
             }
           });
     
+          // Set the player's video to not playing and remove the stream reference
           setPlayers((prev) => ({
             ...prev,
             [myId]: {
               ...prev[myId],
               playing: false,
-              url: null,
+              url: null, // Clear the stream
             },
           }));
     
-          console.log("Video stopped");
+          console.log("Video stopped.");
         }
       }
     
+      // Emit the toggle event to the server
       socket.emit("user-toggle-video", myId, roomId);
     };
     return {players, setPlayers, playerHighlighted, nonHighlightedPlayers, toggleAudio, toggleVideo, leaveRoom}
