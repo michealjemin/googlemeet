@@ -145,7 +145,7 @@ const Room = () => {
             url={playerHighlighted.url}
             muted={playerHighlighted.muted}
             playing={playerHighlighted.playing}
-            isActive 
+            isActive
           />
         )}
       </div>
