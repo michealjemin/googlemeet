@@ -6,7 +6,7 @@ const SocketHandler = (req, res) => {
         console.log("socket already running")
     } else {
         const io = new Server(res.socket.server)
-        res.socket.server.io = io
+        res.socket.server.io = io 
     
         io.on('connection', (socket) => {
             console.log("server is connected")
